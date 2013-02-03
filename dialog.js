@@ -75,10 +75,6 @@ Dialog.prototype.show = function (opts) {
     var context = this;
     context = _extend(context, opts || {});
     
-//    var overlay = context.overlayElement();
-//    if (context.useOverlay)
-//        _showOverlay(overlay, context.onShow, context.onHide);
-
     // Obtain a DOM Element for the dialog
     var dialogElement = _checkDialog(context);
     if ('undefined' === typeof dialogElement) {
@@ -109,7 +105,7 @@ Dialog.prototype.setContent = function(content, selector) {
         contentSelector = selector;
 
     if ('undefined' === typeof contentSelector || ('object' === typeof contentSelector && contentSelector.length < 1)) {
-        _log('setContentItem could not find an element');
+        //_log('setContentItem could not find an element');
         return;
     }
 
@@ -215,16 +211,71 @@ var _fillDialog = function(context, show) {
         _show(context);
 };
 
+// Helper to: show overlay --> show dialog --> invoke onShow
 var _show = function(context) {
-    $(context.dialogElement)[0].style.display = "block";
-    if ('function' === typeof context.onShow)
-        context.onShow(context);
+    if (context.modal) {
+        _showOverlay(context, function() {
+            _showElement(context.dialogElement, context.fade, context.onShow);
+        });
+    } else {
+        _showElement(context.dialogElement, context.fade, context.onShow);
+    }
 };
 
+// Helper to: hide dialog --> hide overlay --> invoke onHide
 var _hide = function(context) {
-    $(context.dialogElement)[0].style.display = "none";
-    if ('function' === typeof context.onHide)
-        context.onHide(context);
+    if (context.modal) {
+        _hideOverlay(context, function() {
+            _hideElement(context.dialogElement, context.fade, context.onHide);
+        });
+    } else {
+        _hideElement(context.dialogElement, context.fade, context.onHide);
+    }
+};
+
+// Helper to: show overlay and execute a callback after its shown.
+var _showOverlay = function(context, complete) {
+    if (null === context.overlayElement)
+        context.overlayElement = _createOverlay(context);
+
+    if (context.hideOnOverlayClick) {
+        $(context.overlayElement).on('click', function() {
+            context.hide();
+        });
+    }
+    _showElement(context.overlayElement, context.fade, complete);
+};
+
+// Helper to: hide the overlay and execute a callback
+var _hideOverlay = function(context, complete) {
+    _hideElement(context.overlayElement, context.fade, function() {
+        if (context.hideOnOverlayClick)
+            $(context.overlayElement).on('click', null);
+        if ('function' === typeof complete)
+            complete();
+    });
+};
+
+// Show or FadeIn an element and execute a callback
+var _showElement = function(e, fade, complete) {
+    if (fade) {
+        // TODO
+    } else {
+        $(e)[0].style.display = "blocK";
+        if ('function' === typeof complete)
+            complete();
+    }
+};
+
+// Hide or FadeOut an element and execute a callback
+var _hideElement = function(e, fade, complete) {
+    if (fade) {
+        // TODO
+    } else {
+        $(e)[0].style.display = "none";
+        if ('function' === typeof complete)
+            complete();
+    }
 };
 
 // Clear content from a dialog
@@ -246,6 +297,19 @@ var _checkDialog = function(context) {
         return context.dialogElement;
 
     return $(_getSelector(context.type))[0];
+};
+
+// Check if the overlayElement exists, create one if it doesn't
+var _createOverlay = function(context) {
+    if (null !== context.overlayElement)
+        return context.overlayElement;
+
+    if ('undefined' === typeof context.overlay)
+        context.overlay = 'overlay';
+
+    var html = '<div class="' + context.overlay + '"></div>';
+    global.document.body.insertAdjacentHTML("beforeend", html);
+    return $(_getSelector(context.overlay))[0];
 };
 
 // Retreive a dialog from a URL (DOM Element)
@@ -275,17 +339,6 @@ var _fetchDialog = function(url, success, err) {
     xhr.send('');
 };
 
-// Show the overlay
-var _showOverlay = function(context) {
-    element.style.display = "block";
-    element.onclick = _hideOverlay(element, onHide);
-};
-
-// Hide the overlay
-var _hideOverlay = function(context, onHide) {
-    element.style.display = "none";
-    element.onclick = null;
-};
 
 // Extend implemenation
 var _extend = function(target, source) {
