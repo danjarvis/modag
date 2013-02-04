@@ -35,39 +35,23 @@ Dialog.prototype = {
 
 // Dialog content
 Dialog.prototype.content = [
-    {
-        name: 'title',
-        text: 'Dialog Title'
-    },
-    {
-        name: 'heading',
-        text: 'Dialog Heading'
-    },
-    {
-        name: 'message',
-        text: 'Dialog Message'
-    }
+    //{
+    //    name: 'title',
+    //    text: 'Dialog Title'
+    //},
 ];
 
 // Default dialog button options
 Dialog.prototype.buttons = [
-    {   // Footer ok button
-        name: 'button-ok',
-        container: 'action-buttons',
-        generate: true,
-        events: {
-            'click': function () {}
-        }
-    },
-    {   // Header close button
-        name: 'button-close',
-        container: 'header',
-        generate: true,
-        text: 'x',
-        events: {
-            'click': function () {}
-        }
-    }
+    //{
+    //    name: 'button-close',
+    //    container: 'header',
+    //    generate: true,
+    //    text: 'x',
+    //    events: {
+    //        'click': function () {}
+    //    }
+    //}
 ];
 
 // Show a dialog
