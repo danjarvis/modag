@@ -95,8 +95,6 @@ Dialog.prototype.setContent = function(content, selector) {
 
     if (content.text)
         $(contentSelector).text(content.text);
-    if (content.val)
-        $(contentSelector).val(content.val);
     if (content.html)
         $(contentSelector).html(content.html);
     
