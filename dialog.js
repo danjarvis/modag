@@ -354,7 +354,7 @@ var _extend = function(target, source) {
 
 // Generate a small HTML snippet for a button
 var _generateButtonHtml = function(b) {
-    return '<div class="' + b.name + '"></div>';
+    return '<button class="' + b.name + '"></button>';
 };
 
 // Do something in the background
