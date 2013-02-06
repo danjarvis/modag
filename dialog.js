@@ -125,16 +125,24 @@ Dialog.prototype.setButton = function(key) {
     }
 };
 
-// Add a new content item (useful if we have already filled the dialog)
-Dialog.prototype.addContent = function(content) {
-    this.content.push(content);
-    this.setContent(content);
+// Add or update this.content and change the dialog
+Dialog.prototype.updateContent = function(key, content) {
+    if ('object' !== typeof content)
+        return;
+
+    if ('undefined' === typeof this.content[key])
+        this.content[key] = content;
+    this.setContent(key);
 };
 
-// Add a new button (useful if we have already filled the dialog)
-Dialog.prototype.addButton = function(button) {
-    this.buttons.push(button);
-    this.setButton(button);
+// Add or update this.buttons and change the dialog
+Dialog.prototype.addButton = function(key, button) {
+    if ('object' !== typeof button)
+        return;
+
+    if ('undefined' === typeof this.buttons[key])
+        this.buttons[key] = button;
+    this.setButton(key);
 };
 
 // Destroy a dialog
