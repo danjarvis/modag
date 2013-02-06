@@ -1,64 +1,47 @@
-﻿//
-// dialog.js
-//
-// Library for providing modal dialog interaction.
-//
-// Dependencies [ender.js]
-//  - qwery
-//  - bonzo
-//  - bean
-//
+﻿/*!
+ * dialog.js
+ * (c) Dan Jarvis 2012 - License MIT
+ */
 ;(function (global, undefined) {
     'use strict';
-
 function Dialog(opts) {
     var context = this;
     context = _extend(context, opts || {});
-    if (context.preLoad)
-        _preLoadDialog(context);
+    if (context.preload)
+        _preloadDialog(context);
+
+    // Setup the show trigger if specified
+    if (context.trigger.selector && context.trigger.event) {
+        $(context.trigger.selector).on(context.trigger.event, function (e, dialog) {
+            dialog.show();
+        }, context);
+    }
 }
 
 Dialog.prototype = {
-    type: 'dialog',         // root class or id used for lookup
-    classes: [],            // additional classes to add to root element
-    preLoad: false,
+    selector: '.dialog',
+    classes: [],
+    attributes: {},
+    preload: false,
     fade: false,
     modal: true,
     hideOnOverlayClick: true,
-    overlay: 'overlay',
+    overlay: '.overlay',
     url: '',
-    onShow: function () {},
-    onHide: function () {},
+    shown: undefined,
+    hidden: undefined,
     overlayElement: null,
-    dialogElement: null
+    dialogElement: null,
+    trigger: {},
+    content: {},
+    buttons: {}
 };
-
-// Dialog content
-Dialog.prototype.content = [
-    //{
-    //    name: 'title',
-    //    text: 'Dialog Title'
-    //},
-];
-
-// Default dialog button options
-Dialog.prototype.buttons = [
-    //{
-    //    name: 'button-close',
-    //    container: 'header',
-    //    generate: true,
-    //    text: 'x',
-    //    events: {
-    //        'click': function () {}
-    //    }
-    //}
-];
 
 // Show a dialog
 Dialog.prototype.show = function (opts) {
     var context = this;
     context = _extend(context, opts || {});
-    
+
     // Obtain a DOM Element for the dialog
     var dialogElement = _checkDialog(context);
     if ('undefined' === typeof dialogElement) {
@@ -67,7 +50,7 @@ Dialog.prototype.show = function (opts) {
             _fillDialog(context);
         });
     } else {
-        if (!context.preLoad)
+        if (!context.preload)
             _fillDialog(context, true);
         else
             _show(context);
@@ -80,11 +63,19 @@ Dialog.prototype.hide = function() {
     _hide(context);
 };
 
-// Set (or update) a dialog content item
-Dialog.prototype.setContent = function(content, selector) {
+// Lookup an existing content item and fill the dialog accordingly
+// <key> should be a key in this.content, represents the selector
+// <selector> if specified, use this is the selector instead of key
+Dialog.prototype.setContent = function(key, isButton, selector) {
+    var contentItem = isButton ? this.buttons[key] : this.content[key];
+    if ('undefined' === contentItem) {
+        _log('setContentItem encountered an invalid key: ' + key);
+        return;
+    }
+
     var contentSelector;
     if ('undefined' === typeof selector)
-        contentSelector = $(_getSelector(content.name), this.dialogElement);
+        contentSelector = $(key, this.dialogElement);
     else
         contentSelector = selector;
 
@@ -93,40 +84,44 @@ Dialog.prototype.setContent = function(content, selector) {
         return;
     }
 
-    if (content.text)
-        $(contentSelector).text(content.text);
-    if (content.html)
-        $(contentSelector).html(content.html);
-    
-    if ('undefined' !== typeof content.atts)
-        for (var k in content.atts)
-            $(contentSelector).attr(k, content.atts[k]);
+    if (contentItem.text)
+        $(contentSelector).text(contentItem.text);
+    if (contentItem.html)
+        $(contentSelector).html(contentItem.html);
+
+    _addClasses(contentItem.classes, contentSelector);
+    _addAttributes(contentItem.attributes, contentSelector);
 };
 
-// Set (or update) a dialog button item
-Dialog.prototype.setButton = function(button) {
-    var selector = _getSelector(button.name);
-    var buttonSelector = $(selector, this.dialogElement);
-
-    // If this button does not exist, add it (if specified)
-    if (('undefined' === typeof buttonSelector || buttonSelector.length < 1) && button.generate) {
-        var containerSelector = _getSelector(button.container);
-        var html = _generateButtonHtml(button);
-        if (null === containerSelector)
-            $(this.dialogElement).append(html);
-        else
-            $(containerSelector, this.dialogElement).append(html);
-
-        buttonSelector = $(selector, this.dialogElement);
+// Lookup an existing button item and fill the dialog accordingly
+// <key> should be a key in this.buttons, represents the selector
+Dialog.prototype.setButton = function(key) {
+    var buttonItem = this.buttons[key];
+    if ('undefined' === typeof buttonItem) {
+        _log('setButtonItem encountered an invalid key: ' + key);
+        return;
     }
 
-    // Buttons can also have text, val and html
-    this.setContent(button, buttonSelector);
+    var buttonSelector = $(key, this.dialogElement);
+
+    // If this button does not exist, add it (if specified)
+    if (('undefined' === typeof buttonSelector || buttonSelector.length < 1) && buttonItem.generate) {
+        var html = _generateButtonHtml(buttonItem);
+        if (null === buttonItem.container)
+            $(this.dialogElement).append(html);
+        else
+            $(buttonItem.container, this.dialogElement).append(html);
+
+        buttonSelector = $(key, this.dialogElement);
+    }
+
+    // Buttons can also have the same properties as content items.
+    this.setContent(key, true, buttonSelector);
 
     // Hook up events
-    if ('object' === typeof button.events) {
-        for (var evt in button.events)
-            $(buttonSelector).on(evt, button.events[evt]);
+    if ('object' === typeof buttonItem.events) {
+        for (var evt in buttonItem.events)
+            $(buttonSelector).on(evt, buttonItem.events[evt], this);
     }
 };
 
@@ -147,12 +142,12 @@ Dialog.prototype.destroy = function() {
     // TODO
 };
 
-//
-// Private Methods
-//
+/*
+ * Private Methods
+ */
 
 // Pre load a dialog
-var _preLoadDialog = function(context) {
+var _preloadDialog = function(context) {
     _async(function() {
         context.dialogElement = _checkDialog(context);
         if ('undefined' === typeof context.dialogElement) {
@@ -175,47 +170,56 @@ var _preLoadDialog = function(context) {
 // Fill a dialog with content
 var _fillDialog = function(context, show) {
     // Add additional root classes if specified
-    if ('string' == typeof context.classes)
-        $(context.dialogElement).toggleClass(context.classes);
-    else if (Array == typeof context.classes.constructor)
-        for (var klass in context.classes)
-            $(context.dialogElement).toggleClass(klass);
+    _addClasses(context.classes, context.dialogElement);
 
     // Content
     for (var c in context.content)
-        context.setContent(context.content[c]);
+        context.setContent(c, false);
 
     // Buttons
     for (var b in context.buttons)
-        context.setButton(context.buttons[b]);
+        context.setButton(b);
 
     if (show)
         _show(context);
 };
 
-// Helper to: show overlay --> show dialog --> invoke onShow
+// Helper to: show overlay --> show dialog --> invoke shown
 var _show = function(context) {
     if (context.modal) {
         _showOverlay(context, function() {
-            _showElement(context.dialogElement, context.fade, context.onShow);
+            _showElement(context.dialogElement, context.fade, function() {
+                if ('undefined' !== typeof context.shown) {
+                    context.shown(context);
+                }
+            });
         });
     } else {
-        _showElement(context.dialogElement, context.fade, context.onShow);
+        _showElement(context.dialogElement, context.fade, function() {
+            if ('undefined' !== typeof context.shown)
+                context.shown(context);
+        });
     }
 };
 
-// Helper to: hide dialog --> hide overlay --> invoke onHide
+// Helper: hide dialog --> hide overlay --> invoke hidden
 var _hide = function(context) {
     if (context.modal) {
         _hideOverlay(context, function() {
-            _hideElement(context.dialogElement, context.fade, context.onHide);
+            _hideElement(context.dialogElement, context.fade, function() {
+                if ('undefined' !== typeof context.hidden)
+                    context.hidden(context);
+            });
         });
     } else {
-        _hideElement(context.dialogElement, context.fade, context.onHide);
+        _hideElement(context.dialogElement, context.fade, function() {
+            if ('undefined' !== typeof context.hidden)
+                context.hidden(context);
+        });
     }
 };
 
-// Helper to: show overlay and execute a callback after its shown.
+// Helper: show overlay and execute a callback after its shown.
 var _showOverlay = function(context, complete) {
     if (null === context.overlayElement)
         context.overlayElement = _createOverlay(context);
@@ -228,7 +232,7 @@ var _showOverlay = function(context, complete) {
     _showElement(context.overlayElement, context.fade, complete);
 };
 
-// Helper to: hide the overlay and execute a callback
+// Helper: hide the overlay and execute a callback
 var _hideOverlay = function(context, complete) {
     _hideElement(context.overlayElement, context.fade, function() {
         if (context.hideOnOverlayClick)
@@ -260,17 +264,28 @@ var _hideElement = function(e, fade, complete) {
     }
 };
 
+// Handle the classes property on the dialog, content, and buttons objects
+var _addClasses = function(classes, selector) {
+    if ('undefined' === typeof classes)
+        return;
+
+    if ('string' === typeof classes)
+        $(selector).toggleClass(classes);
+    else if (Array === classes.constructor)
+        for (var klass in classes)
+            $(selector).toggleClass(classes[klass]);
+};
+
+// Handle the attributes property on the dialog, content and buttons objects
+var _addAttributes = function(attributes, selector) {
+    if ('undefined' !== typeof attributes)
+        for (var k in attributes)
+            $(selector).attr(k, attributes[k]);
+};
+
 // Clear content from a dialog
 var _clearDialog = function(context) {
     // TODO
-};
-
-// Obtain a class or ID selector
-var _getSelector = function(selector) {
-    if ('string' !== typeof selector)
-        return null;
-    return selector[0] == '#' ? selector[0] :
-        (selector[0] == '.' ? selector : '.' + selector);
 };
 
 // Check if the dialogElement exists
@@ -278,7 +293,7 @@ var _checkDialog = function(context) {
     if (null !== context.dialogElement)
         return context.dialogElement;
 
-    return $(_getSelector(context.type))[0];
+    return $(context.selector)[0];
 };
 
 // Check if the overlayElement exists, create one if it doesn't
@@ -286,12 +301,27 @@ var _createOverlay = function(context) {
     if (null !== context.overlayElement)
         return context.overlayElement;
 
-    if ('undefined' === typeof context.overlay)
-        context.overlay = 'overlay';
+    var e = $(context.overlay)[0];
+    if ('undefined' !== typeof e)
+        return e;
 
-    var html = '<div class="' + context.overlay + '"></div>';
+    // Assume a class selector for overlay
+    var o = context.overlay;
+    if ('undefined' === typeof o)
+        o = '.overlay';
+    else if (o[0] != '#' && o[0] != '.')
+        o = '.' + o;
+
+    var html ='<div ';
+    if (o[0] == '#')
+        html += 'id="' + o.substring(1) + '"';
+    else
+        html += 'class="' + o.substring(1) + '"';
+    html += '></div>';
     global.document.body.insertAdjacentHTML("beforeend", html);
-    return $(_getSelector(context.overlay))[0];
+
+    context.overlay = o;
+    return $(o)[0];
 };
 
 // Retreive a dialog from a URL (DOM Element)
@@ -335,6 +365,7 @@ var _extend = function(target, source) {
 };
 
 // Generate a small HTML snippet for a button
+// TODO: redo this
 var _generateButtonHtml = function(b) {
     return '<button class="' + b.name + '"></button>';
 };
