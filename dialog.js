@@ -105,8 +105,8 @@ Dialog.prototype.setButton = function(key) {
 
     // If this button does not exist, add it (if specified)
     if (('undefined' === typeof buttonSelector || buttonSelector.length < 1) && buttonItem.generate) {
-        var html = _generateButtonHtml(buttonItem);
-        if (null === buttonItem.container)
+        var html = _generateButtonHtml(key, buttonItem);
+        if ('undefined' === typeof buttonItem.container)
             $(this.dialogElement).append(html);
         else
             $(buttonItem.container, this.dialogElement).append(html);
@@ -393,9 +393,19 @@ var _extend = function(target, source) {
 };
 
 // Generate a small HTML snippet for a button
-// TODO: redo this
-var _generateButtonHtml = function(b) {
-    return '<button class="' + b.name + '"></button>';
+var _generateButtonHtml = function(selector, button) {
+    var tag = ('undefined' === typeof button.tag) ? 'button' : button.tag;
+    var html = '<' + tag;
+
+    // Assume class selector
+    if (selector[0] != '#' && selector[0] != '.')
+        selector = '.' + selector;
+
+    if (selector[0] == '#')
+        html += ' id="' + selector.substring(1) + '"></' + tag + '>';
+    else
+        html += ' class="' + selector.substring(1) + '"></' + tag + '>';
+    return html;
 };
 
 // Do something in the background
