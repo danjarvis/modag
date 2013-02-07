@@ -144,9 +144,23 @@ Dialog.prototype.addButton = function(key, button) {
     this.setButton(key);
 };
 
-// Destroy a dialog
+// Destroy a dialog.
+//  - remove any events attached to elements we know about
+//  - remove the dialog from the DOM
 Dialog.prototype.destroy = function() {
-    // TODO
+   var context = this;
+   if (context.trigger.selector && context.trigger.event)
+       $(context.trigger.selector).off(context.trigger.event);
+
+   if ('object' === typeof context.buttons) {
+       for (var b in context.buttons) {
+           if ('object' === typeof b.events)
+               for (var evt in b.events)
+                   $(b.selector, context.dialogElement).off(evt);
+       }
+   }
+
+   $(context.dialogElement).remove();
 };
 
 /*
