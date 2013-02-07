@@ -172,7 +172,7 @@ var _preloadDialog = function(context) {
     _async(function() {
         context.dialogElement = _checkDialog(context);
         if ('undefined' === typeof context.dialogElement) {
-            if (context.url === null || context.url.length == 0) {
+            if (context.url === null || context.url.length === 0) {
                 _log('unable to locate a dialog on the DOM, and URL is not set');
                 return;
             }
@@ -347,7 +347,7 @@ var _createOverlay = function(context) {
 
 // Retreive a dialog from a URL (DOM Element)
 var _fetchDialog = function(url, success, err) {
-    if (null === url || url.length == 0) {
+    if (null === url || url.length === 0) {
         _log('_fetchDialog called without a URL!');
         return;
     }
@@ -365,7 +365,7 @@ var _fetchDialog = function(url, success, err) {
             } else {
                 if ('function' === typeof(err))
                     err();
-            };
+            }
         }
     };
     xhr.open('GET', url, true);
@@ -378,7 +378,7 @@ var _extend = function(target, source) {
     target = target || {};
     for (var prop in source) {
         if ('object' === typeof source[prop].constructor)
-            target[prop] = extend(target[prop], source[prop]);
+            target[prop] = _extend(target[prop], source[prop]);
         else
             target[prop] = source[prop];
     }
