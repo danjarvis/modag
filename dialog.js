@@ -22,7 +22,7 @@ Dialog.prototype = {
     selector: '.dialog',
     classes: [],
     attributes: {},
-    preload: false,
+    preload: true,
     fade: false,
     modal: true,
     hideOnOverlayClick: true,
