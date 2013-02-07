@@ -160,6 +160,11 @@ Dialog.prototype.destroy = function() {
        }
    }
 
+   if (context.modal) {
+       _hideOverlay(context, function() {
+           $(context.overlayElement).off('click');
+       });
+   }
    $(context.dialogElement).remove();
 };
 
