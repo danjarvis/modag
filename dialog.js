@@ -59,8 +59,7 @@ Dialog.prototype.show = function (opts) {
 
 // Hide a dialog
 Dialog.prototype.hide = function() {
-    var context = this;
-    _hide(context);
+    _hide(this);
 };
 
 // Lookup an existing content item and fill the dialog accordingly
