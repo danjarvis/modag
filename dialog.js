@@ -194,12 +194,14 @@ var _fillDialog = function(context, show) {
     _addClasses(context.classes, context.dialogElement);
 
     // Content
-    for (var c in context.content)
-        context.setContent(c, false);
+    if ('object' === typeof context.content)
+        for (var c in context.content)
+            context.setContent(c, false);
 
     // Buttons
-    for (var b in context.buttons)
-        context.setButton(b);
+    if ('object' === typeof context.buttons)
+        for (var b in context.buttons)
+            context.setButton(b);
 
     if (show)
         _show(context);
