@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html lang="en-us">
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>dialog.js test</title>
+    <style>
+      p {
+        margin: 0;
+        padding: 0 0 10px 0;
+      }
+
+      .container {
+        text-align: center;
+      }
+
+      .dialog {
+          display: none;
+          height: 274px;
+          width: 460px;
+          z-index: 2;
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          margin-left: -280px;
+          margin-top: -200px;
+          background: #FFF;
+          border-radius: 4px;
+          -moz-border-radius: 4px;
+          box-shadow: 0px 3px 7px rgba(0, 0, 0, 0.3);
+      }
+
+      .dialog .header {
+          padding: 10px 10px 0px 10px;
+          border-bottom: 2px solid rgb(0, 109, 204);
+      }
+
+      .dialog .header .title p {
+          font-weight: bold;
+      }
+
+      .dialog .body {
+          position: relative;
+          height: 160px;
+          padding: 10px;
+          max-height: 260px;
+          overflow-y: auto;
+      }
+
+      .dialog .footer {
+          border-top: 1px solid #CCC;
+          background: #EFEFEF;
+          text-align: right;
+          padding: 10px;
+      }
+
+      .overlay {
+          padding: 0;
+          margin: 0;
+          z-index: 1;
+          height: 100%;
+          width: 100%;
+          background: #000;
+          top: 0;
+          left: 0;
+          position: absolute;
+          opacity: .80;
+          display: none;
+      }
+
+      .btn-container {
+        margin-top: 100px;
+      }
+
+      #test_btn {
+        display: inline-block;
+        padding: 20px 40px;
+      }
+
+      .btn {
+        border-radius: 4px;
+        background: rgb(0, 109, 204);
+        color: #FFF;
+      }
+
+      .btn:hover {
+        cursor: pointer;
+        background: rgb(0, 81, 254);
+      }
+    </style>
+    <script src="//cdn.enderjs.com/ender.js"></script>
+    <script src="../dialog.js"></script>
+    <script type="text/javascript">
+      window.onload = function() {
+        var test = new Dialog({
+            selector: '.dialog-test',
+            url: 'dialog.html',
+            modal: true,
+            content: {
+                '.title': {
+                    text: 'Message...',
+                    classes: 'foo',
+                    attributes: {'data-foo': 'bar', 'data-bar': 'baz'}
+                },
+                '.info': {
+                    html: '<em>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu.</em>'
+                }
+            },
+            buttons: {
+                '.button-close': {
+                    classes: ['foo', 'bar', 'baz'],
+                    attributes: {'data-foo': 'bar', 'data-bar': 'baz'},
+                    events: {
+                        'click': function(e, dialog) { dialog.hide(); }
+                    }
+                }
+            },
+            trigger: {
+                selector: '#test_btn',
+                event: 'click'
+            }
+        });
+      };
+    </script>
+  </head>
+  <body>
+    <div class="container">
+        <h1>dialog.js test</h1>
+        <div class="btn-container">
+          <div id="test_btn" class="btn">TEST</div>
+        </div>
+    </div>
+  </body>
+</html>
