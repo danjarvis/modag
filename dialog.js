@@ -23,7 +23,7 @@ Dialog.prototype = {
     classes: [],
     attributes: {},
     preload: true,
-    fade: false,
+    animate: false,
     modal: true,
     hideOnOverlayClick: true,
     overlay: '.overlay',
@@ -212,43 +212,40 @@ var _fillDialog = function(context, show) {
         _show(context);
 };
 
-// Helper to: show overlay --> show dialog --> invoke shown
 var _show = function(context) {
     if (context.modal) {
         _showOverlay(context, function() {
-            _showElement(context.dialogElement, context.fade, function() {
-                if ('undefined' !== typeof context.shown) {
+            _showDialog(context, function() {
+                if ('function' === typeof context.shown) {
                     context.shown(context);
                 }
             });
         });
     } else {
-        _showElement(context.dialogElement, context.fade, function() {
-            if ('undefined' !== typeof context.shown)
+        _showDialog(context, function() {
+            if ('function' === typeof context.shown)
                 context.shown(context);
         });
     }
 };
 
-// Helper: hide dialog --> hide overlay --> invoke hidden
 var _hide = function(context) {
     if (context.modal) {
-        _hideOverlay(context, function() {
-            _hideElement(context.dialogElement, context.fade, function() {
-                if ('undefined' !== typeof context.hidden)
+        _hideDialog(context, function() {
+            _hideOverlay(context, function() {
+                if ('function' === typeof context.hidden)
                     context.hidden(context);
             });
         });
     } else {
-        _hideElement(context.dialogElement, context.fade, function() {
-            if ('undefined' !== typeof context.hidden)
+        _hideDialog(context, function() {
+            if ('function' === typeof context.hidden)
                 context.hidden(context);
         });
     }
 };
 
-// Helper: show overlay and execute a callback after its shown.
-var _showOverlay = function(context, complete) {
+var _showOverlay = function(context, onComplete) {
     if (null === context.overlayElement)
         context.overlayElement = _createOverlay(context);
 
@@ -257,38 +254,79 @@ var _showOverlay = function(context, complete) {
             context.hide();
         });
     }
-    _showElement(context.overlayElement, context.fade, complete);
-};
 
-// Helper: hide the overlay and execute a callback
-var _hideOverlay = function(context, complete) {
-    _hideElement(context.overlayElement, context.fade, function() {
-        if (context.hideOnOverlayClick)
-            $(context.overlayElement).on('click', null);
-        if ('function' === typeof complete)
-            complete();
-    });
-};
-
-// Show or FadeIn an element and execute a callback
-var _showElement = function(e, fade, complete) {
-    if (fade) {
-        // TODO
+    if (context.animate) {
+        $(context.overlayElement).css({
+            display: 'block',
+            opacity: 0
+        })
+        .animate({
+            opacity: 0.8,
+            duration: 250,
+            complete: onComplete
+        });
     } else {
-        $(e)[0].style.display = "blocK";
-        if ('function' === typeof complete)
-            complete();
+        $(context.overlayElement).show('block');
+        if ('function' === typeof onComplete)
+            onComplete();
     }
 };
 
-// Hide or FadeOut an element and execute a callback
-var _hideElement = function(e, fade, complete) {
-    if (fade) {
-        // TODO
+var _hideOverlay = function(context, onComplete) {
+    if (context.hideOnOverlayClick)
+        $(context.overlayElement).on('click', null);
+
+    if (context.animate) {
+        $(context.overlayElement).animate({
+            display: 'none',
+            opacity: 0,
+            duration: 250,
+            complete: function() {
+                $(context.overlayElement).hide();
+                if ('function' === typeof onComplete)
+                    onComplete();
+            }
+        });
     } else {
-        $(e)[0].style.display = "none";
-        if ('function' === typeof complete)
-            complete();
+        $(context.overlayElement).hide();
+        if ('function' === typeof onComplete)
+            onComplete();
+    }
+};
+
+var _showDialog = function(context, onComplete) {
+    if (context.animate) {
+        $(context.dialogElement).css({
+            display: 'block',
+            'margin-top': '-1000px'
+        })
+        .animate({
+            'margin-top': '-200px',
+            duration: 300,
+            complete: onComplete
+        });
+    } else {
+        $(context.dialogElement).show('block');
+        if ('function' === typeof onComplete)
+            onComplete();
+    }
+};
+
+var _hideDialog = function(context, onComplete) {
+    if (context.animate) {
+        $(context.dialogElement).animate({
+            'margin-top': '-1000px',
+            duration: 300,
+            complete: function() {
+                $(context.dialogElement).hide();
+                if ('function' === typeof onComplete)
+                    onComplete();
+            }
+        });
+    } else {
+        $(context.dialogElement).hide();
+        if ('function' === typeof onComplete)
+            onComplete();
     }
 };
 
