@@ -21,8 +21,8 @@
           position: fixed;
           left: 50%;
           top: 50%;
-          margin-left: -280px;
-          margin-top: -200px;
+          margin-left: -220px;
+          margin-top: -180px;
           background: #FFF;
           border-radius: 4px;
           -moz-border-radius: 4px;
@@ -86,6 +86,11 @@
         cursor: pointer;
         background: rgb(0, 81, 254);
       }
+
+      .button-close {
+        display: inline-block;
+        padding: 4px 10px;
+      }
     </style>
     <script src="//cdn.enderjs.com/ender.js"></script>
     <script src="../dialog.js"></script>
@@ -107,7 +112,6 @@
             },
             buttons: {
                 '.button-close': {
-                    classes: ['foo', 'bar', 'baz'],
                     attributes: {'data-foo': 'bar', 'data-bar': 'baz'},
                     events: {
                         'click': function(e, dialog) { dialog.hide(); }
