@@ -67,7 +67,7 @@ Dialog.prototype.setContent = function(key, isButton, selector) {
   var contentItem = isButton ? this.buttons[key] : this.content[key]
     , contentSelector;
 
-  if ('undefined' === contentItem) {
+  if ('undefined' === typeof contentItem) {
     _log('setContentItem encountered an invalid key: ' + key);
     return;
   }
