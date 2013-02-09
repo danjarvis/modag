@@ -339,31 +339,25 @@ Dialog.prototype = {
   },
 
   // Retreive a dialog from a URL (DOM Element)
-  _fetchDialog: function(url, success, err) {
-    var xhr;
-
+  _fetchDialog: function(url, onSuccess, onError) {
     if ('undefined' === typeof url || url.length === 0) {
       _log('_fetchDialog called without a URL!');
       return;
     }
 
-    xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (this.readyState == 4) {
-        if (this.status == 200) {
-          // Inject the dialog
-          global.document.body.insertAdjacentHTML('beforeend', this.responseText);
-          if ('function' === typeof success) {
-            success(global.document.body.children[(global.document.body.children.length - 1)]);
-          }
-        } else {
-          if ('function' === typeof err)
-            err();
-        }
+    $.ajax({
+      url: url,
+      method: 'get',
+      success: function(response) {
+        $('body').append(response);
+        if ('function' === typeof onSuccess)
+          onSuccess($('body').children().last());
+      },
+      error: function() {
+        if ('function' === typeof onError)
+          onError();
       }
-    };
-    xhr.open('GET', url, true);
-    xhr.send('');
+    });
   }
 };
 
