@@ -6,7 +6,7 @@
   'use strict';
 function Dialog(opts) {
   var context = _extend(this, opts || {});
-  if (context.preload)
+  if (context.preload && context.url)
     _preloadDialog(context);
 
   // Setup the show trigger if specified
@@ -26,7 +26,7 @@ Dialog.prototype = {
   modal: true,
   hideOnOverlayClick: true,
   overlay: '.overlay',
-  url: '',
+  url: null,
   shown: undefined,
   hidden: undefined,
   overlayElement: null,
@@ -169,20 +169,19 @@ Dialog.prototype.destroy = function() {
 };
 
 /*
- * Private Methods
+ * Privates
  */
 
+var _loaded = false,
+
 // Pre load a dialog
-var _preloadDialog = function(context) {
+_preloadDialog = function(context) {
   _async(function() {
     context.dialogElement = _checkDialog(context);
     if ('undefined' === typeof context.dialogElement) {
-      if (context.url === null || context.url.length === 0) {
-        _log('unable to locate a dialog on the DOM, and URL is not set');
-        return;
-      }
       _fetchDialog(context.url,
         function (e) {
+          _loaded = true;
           context.dialogElement = e;
           _fillDialog(context);
         },
