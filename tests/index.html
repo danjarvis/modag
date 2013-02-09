@@ -13,65 +13,82 @@
         text-align: center;
       }
 
-      .dialog {
-          display: none;
-          height: 274px;
-          width: 460px;
-          z-index: 2;
-          position: fixed;
-          left: 50%;
-          top: 50%;
-          margin-left: -220px;
-          margin-top: -180px;
-          background: #FFF;
-          border-radius: 4px;
-          -moz-border-radius: 4px;
-          box-shadow: 0px 3px 7px rgba(0, 0, 0, 0.3);
+      .dialog-test1 {
+        display: none;
+        height: 274px;
+        width: 460px;
+        z-index: 2;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        margin-left: -220px;
+        margin-top: -180px;
+        background: #FFF;
+        border-radius: 4px;
+        -moz-border-radius: 4px;
+        box-shadow: 0px 3px 7px rgba(0, 0, 0, 0.3);
       }
 
-      .dialog .header {
-          padding: 10px 10px 0px 10px;
-          border-bottom: 2px solid rgb(0, 109, 204);
+      .dialog-test1 .header {
+        padding: 10px 10px 0px 10px;
+        border-bottom: 2px solid rgb(0, 109, 204);
       }
 
-      .dialog .header .title p {
-          font-weight: bold;
+      .dialog-test1 .header .title p {
+        font-weight: bold;
       }
 
-      .dialog .body {
-          position: relative;
-          height: 160px;
-          padding: 10px;
-          max-height: 260px;
-          overflow-y: auto;
+      .dialog-test1 .body {
+        position: relative;
+        height: 160px;
+        padding: 10px;
+        max-height: 260px;
+        overflow-y: auto;
       }
 
-      .dialog .footer {
-          border-top: 1px solid #CCC;
-          background: #EFEFEF;
-          text-align: right;
-          padding: 10px;
+      .dialog-test1 .footer {
+        border-top: 1px solid #CCC;
+        background: #EFEFEF;
+        text-align: right;
+        padding: 10px;
+      }
+
+      .dialog-test2 {
+        display: none;
+        height: 160px;
+        width: 420px;
+        z-index: 2;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        margin-left: -200px;
+        margin-top: -140px;
+        background: #EFEFEF;
+        border-radius: 6px;
+        -moz-border-radius: 6px;
+        box-shadow: 0px 3px 7px rgba(0, 0, 0, 0.3);
+        border: 1px solid #CDCDCD;
       }
 
       .overlay {
-          padding: 0;
-          margin: 0;
-          z-index: 1;
-          height: 100%;
-          width: 100%;
-          background: #000;
-          top: 0;
-          left: 0;
-          position: absolute;
-          opacity: .80;
-          display: none;
+        padding: 0;
+        margin: 0;
+        z-index: 1;
+        height: 100%;
+        width: 100%;
+        background: #000;
+        top: 0;
+        left: 0;
+        position: absolute;
+        opacity: .80;
+        display: none;
       }
 
       .btn-container {
         margin-top: 100px;
       }
 
-      #test_btn {
+      .test-btn {
         display: inline-block;
         padding: 20px 40px;
       }
@@ -92,47 +109,74 @@
         padding: 4px 10px;
       }
     </style>
-    <script src="//cdn.enderjs.com/ender.min.js"></script>
+    <script src="//cdn.enderjs.com/ender.js"></script>
     <script src="../dialog.js"></script>
     <script type="text/javascript">
       window.onload = function() {
-        var test = new Dialog({
-            selector: '.dialog-test',
-            url: 'dialog.html',
-            modal: true,
-            animate: true,
-            content: {
-                '.title': {
-                    text: 'Message...',
-                    classes: 'foo',
-                    attributes: {'data-foo': 'bar', 'data-bar': 'baz'}
-                },
-                '.info': {
-                    html: '<em>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu.</em>'
-                }
+        // Test One: Load dialog from the server after the page loads.
+        var testOne = new Dialog({
+          selector: '.dialog-test1',
+          url: 'dialog.html',
+          modal: true,
+          animate: true,
+          content: {
+            '.title': {
+              text: 'Message...',
+              classes: 'foo',
+              attributes: {'data-foo': 'bar', 'data-bar': 'baz'}
             },
-            buttons: {
-                '.button-close': {
-                    attributes: {'data-foo': 'bar', 'data-bar': 'baz'},
-                    events: {
-                        'click': function(e, dialog) { dialog.hide(); }
-                    }
-                }
+            '.info': {
+              html: '<em>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eu.</em>'
             },
-            trigger: {
-                selector: '#test_btn',
-                event: 'click'
+            '.button-close': {
+              attributes: {'data-foo': 'bar', 'data-bar': 'baz'},
+              events: {
+                'click': function(e, dialog) { dialog.hide(); }
+              }
             }
+          },
+          trigger: {
+            selector: '#test_one',
+            event: 'click'
+          }
+        });
+
+        // Test Two: Customize a dialog that already exists on the page
+        var testTwo = new Dialog({
+          selector: '#dialog_two',
+          modal: true,
+          animate: true,
+          preload: false
+        });
+
+        // Don't specify a trigger, change the message each time we show it.
+        $("#test_two").on('click', function() {
+          var d = new Date();
+          testTwo.set('.message', { text: 'Processing since... ' + d });
+          testTwo.show();
         });
       };
     </script>
-  </head>
-  <body>
+    </head>
+    <body>
     <div class="container">
-        <h1>dialog.js test</h1>
-        <div class="btn-container">
-          <div id="test_btn" class="btn">TEST</div>
-        </div>
+      <h1>dialog.js test</h1>
+      <div class="btn-container">
+        <div id="test_one" class="btn test-btn">TEST</div>
+      </div>
+      <div class="btn-container">
+        <div id="test_two" class="btn test-btn">TEST</div>
+      </div>
+    </div>
+
+    <!-- this is a dialog that already exists on the page -->
+    <div id="dialog_two" class="dialog-test2">
+	    <div class="body">
+        <div class="processing"></div>
+		    <p class="message"></p>
+      </div>
+	    <div class="footer">
+	    </div>
     </div>
   </body>
 </html>
