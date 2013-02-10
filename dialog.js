@@ -364,16 +364,16 @@ Dialog.prototype = {
 var _async = function(fn) { setTimeout(fn, 20); }
   , _log = function(msg) { if (window.console && console.log) { console.log(msg); } }
   , _extend = function(target, source) {
-    var prop;
-    target = target || {};
-    for (prop in source) {
-      if ('object' === typeof source[prop].constructor)
-        target[prop] = this._extend(target[prop], source[prop]);
-      else
-        target[prop] = source[prop];
-    }
-    return target;
-  };
+      var prop;
+      target = target || {};
+      for (prop in source) {
+        if ('object' === typeof source[prop].constructor)
+          target[prop] = this._extend(target[prop], source[prop]);
+        else
+          target[prop] = source[prop];
+      }
+      return target;
+    };
 
 // Expose
 if (typeof define === 'function' && define.amd)
