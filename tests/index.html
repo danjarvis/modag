@@ -2,7 +2,7 @@
 <html lang="en-us">
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <title>dialog.js test</title>
+    <title>modag.js test</title>
     <style>
       p {
         margin: 0;
@@ -110,11 +110,11 @@
       }
     </style>
     <script src="//cdn.enderjs.com/ender.js"></script>
-    <script src="../dialog.js"></script>
+    <script src="../modag.js"></script>
     <script type="text/javascript">
       window.onload = function() {
         // Test One: Load dialog from the server after the page loads.
-        var testOne = new Dialog({
+        var testOne = modag({ 
           selector: '.dialog-test1',
           url: 'dialog.html',
           modal: true,
@@ -142,7 +142,7 @@
         });
 
         // Test Two: Customize a dialog that already exists on the page
-        var testTwo = new Dialog({
+        var testTwo = modag({
           selector: '#dialog_two',
           modal: true,
           animate: true,
@@ -160,7 +160,7 @@
     </head>
     <body>
     <div class="container">
-      <h1>dialog.js test</h1>
+      <h1>modag.js test</h1>
       <div class="btn-container">
         <div id="test_one" class="btn test-btn">TEST</div>
       </div>
