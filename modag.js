@@ -1,5 +1,6 @@
 ﻿/*!
- * modag.js :: (c) Dan Jarvis 2012 :: License MIT
+ * modag.js
+ * (c) Dan Jarvis 2012 - License MIT
  */
 !function (name, context, definition) {
   if ('undefined' !== typeof module && module.exports) module.exports = definition()
@@ -9,6 +10,11 @@
 
   function _async(fn) {
     setTimeout(fn, 20);
+  }
+
+  function _log(msg) {
+    if (window.console && console.log)
+      console.log(msg);
   }
 
   function _extend(target, source) {
@@ -85,8 +91,10 @@
 
   // Retreive a dialog from a URL
   function _fetchDialog(url, onSuccess, onError) {
-    if ('undefined' === typeof url || url.length === 0)
+    if ('undefined' === typeof url || url.length === 0) {
+      _log('_fetchDialog called without a URL!');
       return;
+    }
 
     $.ajax({
       url: url,
@@ -199,12 +207,16 @@
       var selector
         , item = this.content[key]
 
-      if ('undefined' === typeof item)
+      if ('undefined' === typeof item) {
+        _log('_set() encountered an invalid key: ' + key);
         return;
+      }
 
       selector = $(key, this._dialogElement);
-      if ('undefined' === typeof selector)
+      if ('undefined' === typeof selector) {
+        _log('_set() could not find an element');
         return;
+      }
 
       if (item.text)
         $(selector).text(item.text);
@@ -227,6 +239,9 @@
               context._loaded = true;
               context._dialogElement = e;
               context._fill();
+            },
+            function () {
+              _log('unable to fetch dialog from the server!');
             });
         }
       });

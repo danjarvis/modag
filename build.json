@@ -1,0 +1,27 @@
+{
+  "JAVASCRIPT": {
+    "DIST_DIR": "./",
+    "modag": [
+      "./src/modag.js"
+    ]
+  },
+  "JSHINT_OPTS": {
+    "predef": [ "$", "module", "define", "window", "console", "setTimeout" ],
+    "boss": true,
+    "forin": false,
+    "curly": false,
+    "debug": false,
+    "devel": false,
+    "evil": false,
+    "regexp": false,
+    "undef": true,
+    "unused": true,
+    "sub": true,
+    "white": false,
+    "indent": 2,
+    "asi": true,
+    "laxbreak": true,
+    "shadow": true,
+    "laxcomma": true
+  }
+}
