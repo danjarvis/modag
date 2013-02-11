@@ -1,16 +1,12 @@
 ﻿/*!
- * dyalog.js
+ * modag.js
  * (c) Dan Jarvis 2012 - License MIT
  */
 !function (name, context, definition) {
   if ('undefined' !== typeof module && module.exports) module.exports = definition()
   else if ('function' === typeof define && define.amd) define(definition)
   else context[name] = definition()
-}('dyalog', this, function() {
-
-  /**
-   * Helper Functions
-   */
+}('modag', this, function() {
 
   function _async(fn) {
     setTimeout(fn, 20);
@@ -57,11 +53,69 @@
     }
   }
 
+  // Check if the overlayElement exists, create one if it doesn't
+  function _createOverlay(mo) {
+    var e, html, o = mo.overlay;
+
+    if ('undefined' !== typeof mo._overlayElement)
+      return mo._overlayElement;
+
+    // Assume a class selector for overlay
+    if ('undefined' === typeof o)
+      o = '.overlay';
+    else if (o[0] != '#' && o[0] != '.')
+      o = '.' + o;
+
+    e = $(o)[0];
+    if ('undefined' !== typeof e)
+      return e;
+
+    html ='<div ';
+    if (o[0] == '#')
+      html += 'id="' + o.substring(1) + '"';
+    else
+      html += 'class="' + o.substring(1) + '"';
+    html += '></div>';
+    $('body').append(html);
+
+    mo.overlay = o;
+    return $(o)[0];
+  }
+
+  // Check if the dialogElement exists
+  function _checkDialog(mo) {
+    if ('undefined' !== typeof mo._dialogElement)
+      return mo._dialogElement;
+    return $(mo.selector)[0];
+  }
+
+  // Retreive a dialog from a URL
+  function _fetchDialog(url, onSuccess, onError) {
+    if ('undefined' === typeof url || url.length === 0) {
+      _log('_fetchDialog called without a URL!');
+      return;
+    }
+
+    $.ajax({
+      url: url,
+      method: 'get',
+      success: function(response) {
+        $('body').append(response);
+        if ('function' === typeof onSuccess)
+          onSuccess($('body').children().last());
+      },
+      error: function() {
+        if ('function' === typeof onError)
+          onError();
+      }
+    });
+  }
+
   /**
-   * Implementation
+   * Modag Implementation
    */
 
-  function Dyalog(opts) {
+  function Modag(opts) {
     var context = _extend(this, opts || {});
     if (context.preload && 'undefined' !== typeof context.url)
       context._preloadDialog(context);
@@ -73,7 +127,7 @@
     }
   }
 
-  Dyalog.prototype = {
+  Modag.prototype = {
     selector: undefined,
     classes: [],
     attributes: {},
@@ -94,11 +148,11 @@
     // Show a dialog
     show: function (opts) {
       var context = _extend(this, opts || {});
-      context._dialogElement = context._checkDialog(context);
+      context._dialogElement = _checkDialog(context);
 
       // Obtain a DOM Element for the dialog
       if ('undefined' === typeof context._dialogElement) {
-        context._fetchDialog(context.url, function(e) {
+        _fetchDialog(context.url, function(e) {
           context._dialogElement = e;
           context._fillDialog();
         });
@@ -178,9 +232,9 @@
     _preloadDialog: function() {
       var context = this;
       _async(function() {
-        context._dialogElement = context._checkDialog(context);
+        context._dialogElement = _checkDialog(context);
         if ('undefined' === typeof context._dialogElement) {
-          context._fetchDialog(context.url,
+          _fetchDialog(context.url,
             function (e) {
               context._loaded = true;
               context._dialogElement = e;
@@ -247,7 +301,7 @@
     _showOverlay: function(onComplete) {
       var context = this;
       if ('undefined' === typeof this._overlayElement)
-        this._overlayElement = this._createOverlay();
+        this._overlayElement = _createOverlay(this);
 
       if (this.hideOnOverlayClick) {
         $(this._overlayElement).on('click', function() {
@@ -330,70 +384,12 @@
         if ('function' === typeof onComplete)
           onComplete();
       }
-    },
-
-    // Check if the dialogElement exists
-    _checkDialog: function() {
-      if ('undefined' !== typeof this._dialogElement)
-        return this._dialogElement;
-      return $(this.selector)[0];
-    },
-
-    // Check if the overlayElement exists, create one if it doesn't
-    _createOverlay: function() {
-      var e, html, o = this.overlay;
-
-      if ('undefined' !== typeof this._overlayElement)
-        return this._overlayElement;
-
-      // Assume a class selector for overlay
-      if ('undefined' === typeof o)
-        o = '.overlay';
-      else if (o[0] != '#' && o[0] != '.')
-        o = '.' + o;
-
-      e = $(o)[0];
-      if ('undefined' !== typeof e)
-        return e;
-
-      html ='<div ';
-      if (o[0] == '#')
-        html += 'id="' + o.substring(1) + '"';
-      else
-        html += 'class="' + o.substring(1) + '"';
-      html += '></div>';
-      global.document.body.insertAdjacentHTML('beforeend', html);
-
-      this.overlay = o;
-      return $(o)[0];
-    },
-
-    // Retreive a dialog from a URL
-    _fetchDialog: function(url, onSuccess, onError) {
-      if ('undefined' === typeof url || url.length === 0) {
-        _log('_fetchDialog called without a URL!');
-        return;
-      }
-
-      $.ajax({
-        url: url,
-        method: 'get',
-        success: function(response) {
-          $('body').append(response);
-          if ('function' === typeof onSuccess)
-            onSuccess($('body').children().last());
-        },
-        error: function() {
-          if ('function' === typeof onError)
-            onError();
-        }
-      });
     }
   };
 
-  function dyalog(opts) {
-    return new Dyalog(opts);
+  function modag(opts) {
+    return new Modag(opts);
   }
 
-  return dyalog;
+  return modag;
 });
