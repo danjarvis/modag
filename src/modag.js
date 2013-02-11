@@ -1,4 +1,4 @@
-﻿/*!
+﻿/**
  * modag.js
  * (c) Dan Jarvis 2012 - License MIT
  */
@@ -393,3 +393,4 @@
 
   return modag;
 });
+
