@@ -54,10 +54,10 @@
         $(selector).attr(k, attributes[k]);
   }
 
-  function _addEvents(events, selector, context) {
+  function _addEvents(events, selector, mo) {
     if ('undefined' !== typeof events) {
       for (var evt in events)
-        $(selector).on(evt, events[evt], context);
+        $(selector).on(evt, events[evt], mo);
     }
   }
 
@@ -128,14 +128,14 @@
    */
 
   function Modag(opts) {
-    var context = _extend(this, opts || {});
-    if (context.preload && 'undefined' !== typeof context.url)
-      context._preload(context);
+    var mo = _extend(this, opts || {});
+    if (mo.preload && 'undefined' !== typeof mo.url)
+      mo._preload();
 
-    if (context.trigger.selector && context.trigger.event) {
-      $(context.trigger.selector).on(context.trigger.event, function (e, dialog) {
+    if (mo.trigger.selector && mo.trigger.event) {
+      $(mo.trigger.selector).on(mo.trigger.event, function (e, dialog) {
         dialog.show();
-      }, context);
+      }, mo);
     }
   }
 
@@ -159,20 +159,20 @@
 
     // Show a dialog
     show: function (opts) {
-      var context = _extend(this, opts || {});
-      context._dialogElement = _checkDialog(context);
+      var mo = _extend(this, opts || {});
+      mo._dialogElement = _checkDialog(mo);
 
       // Obtain a DOM Element for the dialog
-      if ('undefined' === typeof context._dialogElement) {
-        _fetchDialog(context.url, function (e) {
-          context._dialogElement = e;
-          context._fill();
+      if ('undefined' === typeof mo._dialogElement) {
+        _fetchDialog(mo.url, function (e) {
+          mo._dialogElement = e;
+          mo._fill();
         });
       } else {
-        if (!context._loaded)
-          context._fill(true);
+        if (!mo._loaded)
+          mo._fill(true);
         else
-          context._show();
+          mo._show();
       }
     },
 
@@ -238,15 +238,15 @@
 
     // Pre load a dialog
     _preload: function () {
-      var context = this;
+      var mo = this;
       _async(function () {
-        context._dialogElement = _checkDialog(context);
-        if ('undefined' === typeof context._dialogElement) {
-          _fetchDialog(context.url,
+        mo._dialogElement = _checkDialog(mo);
+        if ('undefined' === typeof mo._dialogElement) {
+          _fetchDialog(mo.url,
             function (e) {
-              context._loaded = true;
-              context._dialogElement = e;
-              context._fill();
+              mo._loaded = true;
+              mo._dialogElement = e;
+              mo._fill();
             });
         }
       });
@@ -269,48 +269,48 @@
     },
 
     _show: function () {
-      var context = this;
+      var mo = this;
       if (this.modal) {
         this._showOverlay(function () {
-          context._showDialog(function () {
-            if ('function' === typeof context.shown) {
-              context.shown(context);
+          mo._showDialog(function () {
+            if ('function' === typeof mo.shown) {
+              mo.shown(mo);
             }
           });
         });
       } else {
         this._showDialog(function () {
-          if ('function' === typeof context.shown)
-            context.shown(context);
+          if ('function' === typeof mo.shown)
+            mo.shown(mo);
         });
       }
     },
 
     _hide: function () {
-      var context = this;
+      var mo = this;
       if (this.modal) {
         this._hideDialog(function () {
-          context._hideOverlay(function () {
-            if ('function' === typeof context.hidden)
-              context.hidden(context);
+          mo._hideOverlay(function () {
+            if ('function' === typeof mo.hidden)
+              mo.hidden(mo);
           });
         });
       } else {
         this._hideDialog(function () {
-          if ('function' === typeof context.hidden)
-            context.hidden(context);
+          if ('function' === typeof mo.hidden)
+            mo.hidden(mo);
         });
       }
     },
 
     _showOverlay: function (onComplete) {
-      var context = this;
+      var mo = this;
       if ('undefined' === typeof this._overlayElement)
         this._overlayElement = _createOverlay(this);
 
       if (this.hideOnOverlayClick) {
         $(this._overlayElement).on('click', function () {
-          context.hide();
+          mo.hide();
         });
       }
 
@@ -332,7 +332,7 @@
     },
 
     _hideOverlay: function (onComplete) {
-      var context = this;
+      var mo = this;
       if (this.hideOnOverlayClick)
         $(this._overlayElement).on('click', null);
 
@@ -342,7 +342,7 @@
           opacity: 0,
           duration: 250,
           complete: function () {
-            $(context._overlayElement).hide();
+            $(mo._overlayElement).hide();
             if ('function' === typeof onComplete)
               onComplete();
           }
@@ -373,13 +373,13 @@
     },
 
     _hideDialog: function (onComplete) {
-      var context = this;
+      var mo = this;
       if (this.animate) {
         $(this._dialogElement).animate({
           'margin-top': '-1000px',
           duration: 300,
           complete: function () {
-            $(context._dialogElement).hide();
+            $(mo._dialogElement).hide();
             if ('function' === typeof onComplete)
               onComplete();
           }
