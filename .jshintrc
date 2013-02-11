@@ -29,7 +29,6 @@
   , "funcscope": false
   , "globalstrict": false
   , "iterator": false
-  , "lastsemic": true
   , "laxbreak": true
   , "laxcomma": true
   , "loopfunc": true
@@ -55,6 +54,5 @@
   , "worker": true
   , "wsh": false
   , "nomen": false
-  , "onevar": true
   , "passfail": false
 }
