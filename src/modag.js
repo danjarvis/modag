@@ -1,4 +1,4 @@
-﻿/*!
+/*!
  * modag.js :: (c) Dan Jarvis 2012 :: License MIT
  */
 !function (name, context, definition) {
