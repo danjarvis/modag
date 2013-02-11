@@ -7,6 +7,20 @@
   else context[name] = definition()
 }('modag', this, function () {
 
+  var _overlayDefaults = {
+    'z-index': 1,
+    'display': 'none',
+    'height': '100%',
+    'width': '100%',
+    'margin': 0,
+    'padding': 0,
+    'position': 'absolute',
+    'top': '0px',
+    'left': '0px',
+    'opacity': '0.8',
+    'background': '#000'
+  };
+
   function _async(fn) {
     setTimeout(fn, 20);
   }
@@ -49,7 +63,7 @@
 
   // Check if the overlayElement exists, create one if it doesn't
   function _createOverlay(mo) {
-    var e, html, o = mo.overlay;
+    var e, html, o = mo.overlay.selector;
 
     if ('undefined' !== typeof mo._overlayElement)
       return mo._overlayElement;
@@ -72,7 +86,13 @@
     html += '></div>';
     $('body').append(html);
 
-    mo.overlay = o;
+    mo.overlay.selector = o;
+
+    // Add additional CSS if specified...
+    if ('object' === typeof mo.overlay.css) {
+      mo.overlay.css = _extend(_overlayDefaults, mo.overlay.css);
+      $(o).css(mo.overlay.css);
+    }
     return $(o)[0];
   }
 
@@ -127,7 +147,7 @@
     animate: false,
     modal: true,
     hideOnOverlayClick: true,
-    overlay: undefined,
+    overlay: {},
     url: undefined,
     shown: undefined,
     hidden: undefined,
