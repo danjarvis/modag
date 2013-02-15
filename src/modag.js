@@ -155,6 +155,7 @@
 
   function Modag(opts) {
     var mo = _extend(this, opts || {});
+    mo.animations = _extend(mo.animations, _animationDefaults);
     if (mo.preload && 'undefined' !== typeof mo.url)
       mo._preload();
 
@@ -185,8 +186,8 @@
     _dialogElement: undefined,
 
     // Show a dialog
-    show: function (opts) {
-      var mo = _extend(this, opts || {});
+    show: function () {
+      var mo = this;
       mo._dialogElement = _checkDialog(mo);
 
       // Obtain a DOM Element for the dialog
@@ -331,7 +332,10 @@
     },
 
     _showOverlay: function (onComplete) {
-      var mo = this;
+      var css
+        , ani
+        , mo = this;
+
       if ('undefined' === typeof this._overlayElement)
         this._overlayElement = _createOverlay(this);
 
@@ -342,15 +346,10 @@
       }
 
       if (this.animate) {
-        $(this._overlayElement).css({
-          display: 'block',
-          opacity: 0
-        })
-        .animate({
-          opacity: 0.8,
-          duration: 250,
-          complete: onComplete
-        });
+        css = _clone(this.animations.overlayIn.css);
+        ani = _clone(this.animations.overlayIn.animate);
+        ani['complete'] = onComplete;
+        $(this._overlayElement).css(css).animate(ani);
       } else {
         $(this._overlayElement).show('block');
         if ('function' === typeof onComplete)
@@ -359,21 +358,20 @@
     },
 
     _hideOverlay: function (onComplete) {
-      var mo = this;
+      var mo = this
+        , ani
+        , complete = function () {
+          $(mo._overlayElement).hide();
+          if ('function' === typeof onComplete)
+            onComplete();
+        };
       if (this.hideOnOverlayClick)
         $(this._overlayElement).on('click', null);
 
       if (this.animate) {
-        $(this._overlayElement).animate({
-          display: 'none',
-          opacity: 0,
-          duration: 250,
-          complete: function () {
-            $(mo._overlayElement).hide();
-            if ('function' === typeof onComplete)
-              onComplete();
-          }
-        });
+        ani = _clone(this.animations.overlayOut.animate);
+        ani['complete'] = complete;
+        $(this._overlayElement).animate(ani);
       } else {
         $(this._overlayElement).hide();
         if ('function' === typeof onComplete)
@@ -382,16 +380,13 @@
     },
 
     _showDialog: function (onComplete) {
+      var ani
+        , css;
       if (this.animate) {
-        $(this._dialogElement).css({
-          display: 'block',
-          'margin-top': '-1000px'
-        })
-        .animate({
-          'margin-top': '-200px',
-          duration: 300,
-          complete: onComplete
-        });
+        css = _clone(this.animations.dialogIn.css);
+        ani = _clone(this.animations.dialogIn.animate);
+        ani['complete'] = onComplete;
+        $(this._dialogElement).css(css).animate(ani);
       } else {
         $(this._dialogElement).show('block');
         if ('function' === typeof onComplete)
@@ -400,17 +395,19 @@
     },
 
     _hideDialog: function (onComplete) {
-      var mo = this;
-      if (this.animate) {
-        $(this._dialogElement).animate({
-          'margin-top': '-1000px',
-          duration: 300,
-          complete: function () {
+      var mo = this
+        , ani
+        , complete = function () {
+            console.log('dialog is hidden');
             $(mo._dialogElement).hide();
             if ('function' === typeof onComplete)
               onComplete();
-          }
-        });
+          };
+
+      if (this.animate) {
+        ani = _clone(this.animations.dialogOut.animate);
+        ani['complete'] = complete;
+        $(this._dialogElement).animate(ani);
       } else {
         $(this._dialogElement).hide();
         if ('function' === typeof onComplete)
