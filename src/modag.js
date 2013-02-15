@@ -8,18 +8,34 @@
 }('modag', this, function () {
 
   var _overlayDefaults = {
-    'z-index': 1,
-    'display': 'none',
-    'height': '100%',
-    'width': '100%',
-    'margin': 0,
-    'padding': 0,
-    'position': 'absolute',
-    'top': '0px',
-    'left': '0px',
-    'opacity': '0.8',
-    'background': '#000'
-  };
+      'z-index': 1
+    , 'display': 'none'
+    , 'height': '100%'
+    , 'width': '100%'
+    , 'margin': 0
+    , 'padding': 0
+    , 'position': 'absolute'
+    , 'top': '0px'
+    , 'left': '0px'
+    , 'opacity': '0.8'
+    , 'background': '#000'
+    }
+  , _animationDefaults = {
+      overlayIn: {
+        css: { 'display': 'block', 'opacity': '0' }
+      , animate: { 'duration': 100, 'opacity': '0.8' }
+      }
+    , overlayOut: {
+        animate: { 'opacity': '0', 'duration': 250 }
+      }
+    , dialogIn: {
+        css: { 'display': 'block', 'margin-top': '-1000px' }
+      , animate: { 'margin-top': '-200px', 'duration': 300 }
+      }
+    , dialogOut: {
+        animate: { 'margin-top': '-1000px', 'duration': 300 }
+      }
+    };
 
   function _async(fn) {
     setTimeout(fn, 20);
@@ -155,6 +171,7 @@
     attributes: {},
     preload: true,
     animate: false,
+    animations: { overlayIn: {}, overlayOut: {}, dialogIn: {}, dialogOut: {} },
     modal: true,
     hideOnOverlayClick: true,
     overlay: {},
