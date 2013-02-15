@@ -37,6 +37,16 @@
     return target;
   }
 
+  function _clone(o) {
+    var i, c = {};
+    for (i in o)
+      if ('object' === typeof o[i])
+        c[i] = _clone(o[i]);
+      else
+        c[i] = o[i];
+    return c;
+  }
+
   function _addClasses(classes, selector) {
     if ('undefined' === typeof classes)
       return;
