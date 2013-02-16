@@ -6,4 +6,5 @@ Outstanding Items
 * Support url / selector only in modag ctor
 * Test ender bridge (publish to npm)
 * Test on IE
+* Documentation
 * gh-pages site
