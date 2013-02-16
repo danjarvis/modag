@@ -26,14 +26,16 @@
       , animate: { 'duration': 100, 'opacity': '0.8' }
       }
     , overlayOut: {
-        animate: { 'opacity': '0', 'duration': 250 }
+        css: {}
+      , animate: { 'opacity': '0', 'duration': 250 }
       }
     , dialogIn: {
         css: { 'display': 'block', 'margin-top': '-1000px' }
       , animate: { 'margin-top': '-200px', 'duration': 300 }
       }
     , dialogOut: {
-        animate: { 'margin-top': '-1000px', 'duration': 300 }
+        css: {}
+      , animate: { 'margin-top': '-1000px', 'duration': 300 }
       }
     };
 
@@ -359,6 +361,7 @@
 
     _hideOverlay: function (onComplete) {
       var mo = this
+        , css
         , ani
         , complete = function () {
           $(mo._overlayElement).hide();
@@ -369,9 +372,10 @@
         $(this._overlayElement).on('click', null);
 
       if (this.animate) {
+        css = _clone(this.animations.overlayOut.css);
         ani = _clone(this.animations.overlayOut.animate);
         ani['complete'] = complete;
-        $(this._overlayElement).animate(ani);
+        $(this._overlayElement).css(css).animate(ani);
       } else {
         $(this._overlayElement).hide();
         if ('function' === typeof onComplete)
@@ -382,6 +386,7 @@
     _showDialog: function (onComplete) {
       var ani
         , css;
+
       if (this.animate) {
         css = _clone(this.animations.dialogIn.css);
         ani = _clone(this.animations.dialogIn.animate);
@@ -396,18 +401,19 @@
 
     _hideDialog: function (onComplete) {
       var mo = this
+        , css
         , ani
         , complete = function () {
-            console.log('dialog is hidden');
             $(mo._dialogElement).hide();
             if ('function' === typeof onComplete)
               onComplete();
           };
 
       if (this.animate) {
+        css = _clone(this.animations.dialogOut.css);
         ani = _clone(this.animations.dialogOut.animate);
         ani['complete'] = complete;
-        $(this._dialogElement).animate(ani);
+        $(this._dialogElement).css(css).animate(ani);
       } else {
         $(this._dialogElement).hide();
         if ('function' === typeof onComplete)
