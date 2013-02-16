@@ -20,24 +20,31 @@
     , 'opacity': '0.8'
     , 'background': '#000'
     }
-  , _animationDefaults = {
-      overlayIn: {
-        css: { 'display': 'block', 'opacity': '0' }
-      , animate: { 'duration': 100, 'opacity': '0.8' }
+    , _animationDefaults = {
+        overlayIn: {
+          css: { 'display': 'block', 'opacity': '0' }
+        , animate: { 'duration': 100, 'opacity': '0.8' }
+        }
+      , overlayOut: {
+          css: {}
+        , animate: { 'opacity': '0', 'duration': 250 }
+        }
+      , dialogIn: {
+          css: { 'display': 'block', 'margin-top': '-1000px' }
+        , animate: { 'margin-top': '-200px', 'duration': 300 }
+        }
+      , dialogOut: {
+          css: {}
+        , animate: { 'margin-top': '-1000px', 'duration': 300 }
+        }
       }
-    , overlayOut: {
-        css: {}
-      , animate: { 'opacity': '0', 'duration': 250 }
-      }
-    , dialogIn: {
-        css: { 'display': 'block', 'margin-top': '-1000px' }
-      , animate: { 'margin-top': '-200px', 'duration': 300 }
-      }
-    , dialogOut: {
-        css: {}
-      , animate: { 'margin-top': '-1000px', 'duration': 300 }
-      }
-    };
+    , _xhr = window['XMLHttpRequest'] ?
+      function () {
+        return new XMLHttpRequest();
+      } :
+      function () {
+        return new ActiveXObject('Microsoft.XMLHTTP');
+      };
 
   function _async(fn) {
     setTimeout(fn, 20);
