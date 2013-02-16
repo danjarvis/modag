@@ -143,19 +143,25 @@
     if ('undefined' === typeof url || url.length === 0)
       return;
 
-    $.ajax({
-      url: url,
-      method: 'get',
-      success: function (response) {
-        $('body').append(response);
-        if ('function' === typeof onSuccess)
-          onSuccess($('body').children().last());
-      },
-      error: function () {
-        if ('function' === typeof onError)
-          onError();
+    var onReadyStateChange = function () {
+      if (this.readyState === 4) {
+        // Thanks to http://github.com/ded/reqwest / @ded
+        if (/^20\d$/.test(this.status)) {
+          $('body').append(this.responseText);
+          if ('function' === typeof onSuccess)
+            onSuccess($('body').children().last());
+        } else {
+          if ('function' === typeof onError) {
+            onError(this);
+          }
+        }
       }
-    });
+    };
+
+    var req = new _xhr();
+    req.onreadystatechange = onReadyStateChange;
+    req.open('GET', url, true);
+    req.send('');
   }
 
   /**
@@ -202,9 +208,14 @@
       // Obtain a DOM Element for the dialog
       if ('undefined' === typeof mo._dialogElement) {
         _fetchDialog(mo.url, function (e) {
-          mo._dialogElement = e;
-          mo._fill();
-        });
+            mo._dialogElement = e;
+            mo._fill();
+          },
+          function (err) {
+            if (window.console)
+              console.log(err);
+          }
+        );
       } else {
         if (!mo._loaded)
           mo._fill(true);
@@ -280,11 +291,16 @@
         mo._dialogElement = _checkDialog(mo);
         if ('undefined' === typeof mo._dialogElement) {
           _fetchDialog(mo.url,
-            function (e) {
-              mo._loaded = true;
-              mo._dialogElement = e;
-              mo._fill();
-            });
+              function (e) {
+                mo._loaded = true;
+                mo._dialogElement = e;
+                mo._fill();
+              },
+              function (err) {
+                if (window.console)
+                  console.log(err);
+              }
+            );
         }
       });
     },
