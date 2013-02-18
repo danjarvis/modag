@@ -55,19 +55,33 @@
 
       .dialog-test2 {
         display: none;
-        height: 160px;
-        width: 420px;
+        height: 120px;
+        width: 320px;
         z-index: 2;
         position: fixed;
         left: 50%;
         top: 50%;
-        margin-left: -200px;
+        margin-left: -160px;
         margin-top: -140px;
         background: #EFEFEF;
         border-radius: 6px;
         -moz-border-radius: 6px;
         box-shadow: 0px 3px 7px rgba(0, 0, 0, 0.3);
-        border: 1px solid #CDCDCD;
+        border: 2px solid #282828;
+      }
+
+      .dialog-test2 .processing {
+        background-image: url('img/spinner.gif');
+        height: 36px;
+        width: 36px;
+        margin: 40px 0 0 20px;
+        float: left;
+      }
+
+      .dialog-test2 .message {
+        float: left;
+        margin: 48px 0 0 28px;
+        font-size: 18px;
       }
 
       .overlay {
@@ -85,7 +99,7 @@
       }
 
       .btn-container {
-        margin-top: 100px;
+        margin-top: 60px;
       }
 
       .test-btn {
@@ -146,13 +160,25 @@
           selector: '#dialog_two',
           modal: true,
           animate: true,
-          preload: false
+          preload: false,
+          overlay: { selector: '.overlay-two', css: { opacity: '0.5', background: '#424242' } }
         });
 
+        var phrases = [
+          'Processing...',
+          'Please wait...',
+          'Communicating...',
+          'Stand by...',
+          'Just a minute...',
+          'Processing your request...',
+          'This could take a minute...',
+          'Requesting data...',
+          'Phoning home...'
+        ];
+
         // Don't specify a trigger, change the message each time we show it.
-        $("#test_two").on('click', function() {
-          var d = new Date();
-          testTwo.set('.message', { text: 'Processing since... ' + d });
+        $('#test_two').on('click', function() {
+          testTwo.set('.message', { text: phrases[Math.floor(Math.random() * phrases.length)] });
           testTwo.show();
         });
       };
@@ -171,12 +197,10 @@
 
     <!-- this is a dialog that already exists on the page -->
     <div id="dialog_two" class="dialog-test2">
-	    <div class="body">
+      <div class="body">
         <div class="processing"></div>
-		    <p class="message"></p>
+        <p class="message"></p>
       </div>
-	    <div class="footer">
-	    </div>
     </div>
   </body>
 </html>
