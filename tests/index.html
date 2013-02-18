@@ -178,7 +178,7 @@
 
         // Don't specify a trigger, change the message each time we show it.
         $('#test_two').on('click', function() {
-          testTwo.set('.message', { text: phrases[Math.floor(Math.random() * phrases.length)] });
+          testTwo.set('.message', phrases[Math.floor(Math.random() * phrases.length)]);
           testTwo.show();
         });
       };

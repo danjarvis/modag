@@ -229,18 +229,53 @@
       this._hide();
     },
 
-    set: function (key, o) {
-      if ('object' !== typeof o)
-        return;
+    /**
+     * Update dialog content
+     *
+     * Expected argument combinations:
+     * @param {String} args[0] Content key (selector) for the modag instance
+     * @param {Object} args[1] Object value for content[key].
+     *                         Note: this parameter can also be a string or number.
+     *                         In which case it will be set as content[key]['text']
+     *      -- OR --
+     *
+     * @param {Object} args[0] An object of key / value pairs, where the key
+     *                         represents the selector and the value is either
+     *                         an object or a string / number:
+     *                         { '.message' : { html: '<em>My message</em>', // etc... } }
+     *                         { '.message': 'My message' }
+     */
+    set: function () {
+      var key, keys = [], args = [].slice.call(arguments)
+        , _val = function (arg) {
+          return 'object' === typeof arg ? arg : { text: arg };
+        };
 
-      if ('undefined' === typeof this.content[key])
-        this.content[key] = o;
-      else
-        this.content[key] = _extend(this.content[key], o);
-      this._set(key);
+      if (args.length == 1 && 'object' === typeof args[0]) {
+        for (key in args) {
+          if ('undefined' === typeof this.content[key])
+            this.content[key] = _val(args[key]);
+          else
+            this.content[key] = _extend(this.content[key], _val(args[key]));
+          keys.push(key);
+        }
+        this._setContent(keys);
+      } else if (arguments.length == 2) {
+        key = args[0];
+        if ('undefined' === typeof this.content[key])
+          this.content[key] = _val(args[1]);
+        else
+          this.content[key] = _extend(this.content[key], _val(args[1]));
+        this._setContent(key);
+      }
     },
 
-    // Destroy a dialog
+    /**
+     * Destroy a dialog.
+     *
+     * Remove trigger events and any events added to content items.
+     * Remove _dialogElement from the DOM.
+     */
     destroy: function () {
       var c, evt;
 
