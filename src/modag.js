@@ -96,7 +96,9 @@
     }
   }
 
-  // Check if the overlayElement exists, create one if it doesn't
+  /**
+   * Create the overlay (mask) for a dialog.
+   */
   function _createOverlay(mo) {
     var e, html, o = mo.overlay.selector;
 
@@ -131,14 +133,18 @@
     return $(o)[0];
   }
 
-  // Check if the dialogElement exists
+  /**
+   * Check if the _dialogElement exists
+   */
   function _checkDialog(mo) {
     if ('undefined' !== typeof mo._dialogElement)
       return mo._dialogElement;
     return $(mo.selector)[0];
   }
 
-  // Retreive a dialog from a URL
+  /**
+   * Retreive a dialog from a URL
+   */
   function _fetchDialog(url, onSuccess, onError) {
     if ('undefined' === typeof url || url.length === 0)
       return;
@@ -341,6 +347,11 @@
       }
     },
 
+    /**
+     * Preload dialog markup from a URL.
+     *
+     * @private
+     */
     _preload: function () {
       var mo = this;
       _async(function () {
@@ -361,7 +372,11 @@
       });
     },
 
-    // Fill a dialog with content
+    /**
+     * Fill a dialog with content.
+     *
+     * @private
+     */
     _fill: function (show) {
       var c;
 
