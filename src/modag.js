@@ -200,7 +200,9 @@
     _overlayElement: undefined,
     _dialogElement: undefined,
 
-    // Show a dialog
+    /**
+     * Show the dialog.
+     */
     show: function () {
       var mo = this;
       mo._dialogElement = _checkDialog(mo);
@@ -224,13 +226,15 @@
       }
     },
 
-    // Hide a dialog
+    /**
+     * Hide the dialog.
+     */
     hide: function () {
       this._hide();
     },
 
     /**
-     * Update dialog content
+     * Update dialog content.
      *
      * Expected argument combinations:
      * @param {String} args[0] Content key (selector) for the modag instance
@@ -271,7 +275,7 @@
     },
 
     /**
-     * Destroy a dialog.
+     * Destroy the dialog.
      *
      * Remove trigger events and any events added to content items.
      * Remove _dialogElement from the DOM.
@@ -298,28 +302,45 @@
       $(this._dialogElement).remove();
     },
 
-    _set: function (key) {
-      var selector
-        , item = this.content[key]
+    /**
+     * Manupilate the DOM for one or more content items
+     *
+     * @private
+     *
+     * Expected arguments combinations:
+     * @param {String} key content item key (selector) to set
+     *
+     *      -- OR --
+     *
+     * @param {Array} keys content item keys (selectors) to set
+     */
+    _setContent: function () {
+      var key, item, selector
+        , keys = []
+        , args = [].slice.call(arguments);
 
-      if ('undefined' === typeof item)
-        return;
+      if (args.length > 0) {
+        if (Array !== args[0].constructor)
+          keys.push(args[0]);
+        else
+          keys = args[0];
 
-      selector = $(key, this._dialogElement);
-      if ('undefined' === typeof selector)
-        return;
+        for (key in keys) {
+          item = this.content[keys[key]];
+          selector = $(keys[key], this._dialogElement);
 
-      if (item.text)
-        $(selector).text(item.text);
-      if (item.html)
-        $(selector).html(item.html);
+          if (item.text)
+            $(selector).text(item.text);
+          if (item.html)
+            $(selector).html(item.html);
 
-      _addClasses(item.classes, selector);
-      _addAttributes(item.attributes, selector);
-      _addEvents(item.events, selector, this);
+          _addClasses(item.classes, selector);
+          _addAttributes(item.attributes, selector);
+          _addEvents(item.events, selector, this);
+        }
+      }
     },
 
-    // Pre load a dialog
     _preload: function () {
       var mo = this;
       _async(function () {
@@ -350,7 +371,7 @@
       // Content
       if ('object' === typeof this.content)
         for (c in this.content)
-          this._set(c);
+          this._setContent(c);
 
       if (show)
         this._show();
