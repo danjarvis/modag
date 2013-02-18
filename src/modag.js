@@ -164,7 +164,7 @@
       }
     };
 
-    var req = new _xhr();
+    var req = _xhr();
     req.onreadystatechange = onReadyStateChange;
     req.open('GET', url, true);
     req.send('');
