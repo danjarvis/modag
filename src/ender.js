@@ -7,8 +7,8 @@
 
   $.ender({
     modag: function(opts) {
-      opts._dialogElement = this;
-      return modag(opts);
+      opts['_dialogElement'] = this;
+      return m(opts);
     }
   }, true);
 }(ender);
