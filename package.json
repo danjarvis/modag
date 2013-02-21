@@ -11,4 +11,7 @@
       "type": "git"
     , "url": "https://github.com/danjarvis/modag.git"
   }
+  , "devDependencies": {
+      "smoosh": "0.4.x"
+  }
 }
