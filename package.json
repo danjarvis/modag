@@ -1,5 +1,14 @@
 {
-  "name": "modag",
-  "description": "a simple, small, cross-platform modal dialog framework for the web.",
-  "version": "0.0.1"
+    "name": "modag"
+  , "description": "a tiny modal dialog plugin for ender"
+  , "version": "0.1.0"
+  , "homepage": "https://github.com/danjarvis/modag"
+  , "author": "Dan Jarvis <djarvis270@gmail.com>"
+  , "keywords": ["ender", "css", "html", "dialog", "modal", "overlay"]
+  , "main": "./modag.js"
+  , "ender": "./src/ender.js"
+  , "repository": {
+      "type": "git"
+    , "url": "https://github.com/danjarvis/modag.git"
+  }
 }
