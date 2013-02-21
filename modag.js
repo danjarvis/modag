@@ -309,7 +309,7 @@
     },
 
     /**
-     * Manupilate the DOM for one or more content items
+     * Manipulate the DOM for one or more content items
      *
      * @private
      *
