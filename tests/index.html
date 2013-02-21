@@ -123,12 +123,11 @@
         padding: 4px 10px;
       }
     </style>
-    <script src="//cdn.enderjs.com/ender.js"></script>
-    <script src="../modag.js"></script>
+    <script src="ender.js"></script>
     <script type="text/javascript">
       window.onload = function() {
         // Test One: Load dialog from the server after the page loads.
-        var testOne = modag({ 
+        var testOne = $.modag({
           selector: '.dialog-test1',
           url: 'dialog.html',
           modal: true,
@@ -156,8 +155,7 @@
         });
 
         // Test Two: Customize a dialog that already exists on the page
-        var testTwo = modag({
-          selector: '#dialog_two',
+        var testTwo = $('#dialog_two').modag({
           modal: true,
           animate: true,
           preload: false,
