@@ -1,5 +1,5 @@
 /*!
- * modag.js :: (c) Dan Jarvis 2012 :: License MIT
+ * modag.js :: (c) Dan Jarvis 2013 :: License MIT
  */
 !function (name, context, definition) {
   if ('undefined' !== typeof module && module.exports) module.exports = definition()
