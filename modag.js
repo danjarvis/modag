@@ -7,6 +7,45 @@
   else context[name] = definition()
 }('modag', this, function () {
 
+  var _overlayDefaults = {
+      'z-index': 1
+    , 'display': 'none'
+    , 'height': '100%'
+    , 'width': '100%'
+    , 'margin': 0
+    , 'padding': 0
+    , 'position': 'absolute'
+    , 'top': '0px'
+    , 'left': '0px'
+    , 'opacity': '0.8'
+    , 'background': '#000'
+    }
+    , _animationDefaults = {
+        overlayIn: {
+          css: { 'display': 'block', 'opacity': '0' }
+        , animate: { 'duration': 100, 'opacity': '0.8' }
+        }
+      , overlayOut: {
+          css: {}
+        , animate: { 'opacity': '0', 'duration': 250 }
+        }
+      , dialogIn: {
+          css: { 'display': 'block', 'margin-top': '-1000px' }
+        , animate: { 'margin-top': '-200px', 'duration': 300 }
+        }
+      , dialogOut: {
+          css: {}
+        , animate: { 'margin-top': '-1000px', 'duration': 300 }
+        }
+      }
+    , _xhr = window['XMLHttpRequest'] ?
+      function () {
+        return new XMLHttpRequest();
+      } :
+      function () {
+        return new ActiveXObject('Microsoft.XMLHTTP');
+      };
+
   function _async(fn) {
     setTimeout(fn, 20);
   }
@@ -21,6 +60,16 @@
         target[prop] = source[prop];
     }
     return target;
+  }
+
+  function _clone(o) {
+    var i, c = {};
+    for (i in o)
+      if ('object' === typeof o[i])
+        c[i] = _clone(o[i]);
+      else
+        c[i] = o[i];
+    return c;
   }
 
   function _addClasses(classes, selector) {
@@ -40,16 +89,18 @@
         $(selector).attr(k, attributes[k]);
   }
 
-  function _addEvents(events, selector, context) {
+  function _addEvents(events, selector, mo) {
     if ('undefined' !== typeof events) {
       for (var evt in events)
-        $(selector).on(evt, events[evt], context);
+        $(selector).on(evt, events[evt], mo);
     }
   }
 
-  // Check if the overlayElement exists, create one if it doesn't
+  /**
+   * Create the overlay (mask) for a dialog.
+   */
   function _createOverlay(mo) {
-    var e, html, o = mo.overlay;
+    var e, html, o = mo.overlay.selector;
 
     if ('undefined' !== typeof mo._overlayElement)
       return mo._overlayElement;
@@ -72,35 +123,51 @@
     html += '></div>';
     $('body').append(html);
 
-    mo.overlay = o;
+    mo.overlay.selector = o;
+
+    // Add additional CSS if specified...
+    if ('object' === typeof mo.overlay.css) {
+      mo.overlay.css = _extend(_overlayDefaults, mo.overlay.css);
+      $(o).css(mo.overlay.css);
+    }
     return $(o)[0];
   }
 
-  // Check if the dialogElement exists
+  /**
+   * Check if the _dialogElement exists
+   */
   function _checkDialog(mo) {
     if ('undefined' !== typeof mo._dialogElement)
       return mo._dialogElement;
     return $(mo.selector)[0];
   }
 
-  // Retreive a dialog from a URL
+  /**
+   * Retreive a dialog from a URL
+   */
   function _fetchDialog(url, onSuccess, onError) {
     if ('undefined' === typeof url || url.length === 0)
       return;
 
-    $.ajax({
-      url: url,
-      method: 'get',
-      success: function (response) {
-        $('body').append(response);
-        if ('function' === typeof onSuccess)
-          onSuccess($('body').children().last());
-      },
-      error: function () {
-        if ('function' === typeof onError)
-          onError();
+    var onReadyStateChange = function () {
+      if (this.readyState === 4) {
+        // Thanks to http://github.com/ded/reqwest / @ded
+        if (/^20\d$/.test(this.status)) {
+          $('body').append(this.responseText);
+          if ('function' === typeof onSuccess)
+            onSuccess($('body').children().last());
+        } else {
+          if ('function' === typeof onError) {
+            onError(this);
+          }
+        }
       }
-    });
+    };
+
+    var req = _xhr();
+    req.onreadystatechange = onReadyStateChange;
+    req.open('GET', url, true);
+    req.send('');
   }
 
   /**
@@ -108,14 +175,15 @@
    */
 
   function Modag(opts) {
-    var context = _extend(this, opts || {});
-    if (context.preload && 'undefined' !== typeof context.url)
-      context._preload(context);
+    var mo = _extend(this, opts || {});
+    mo.animations = _extend(mo.animations, _animationDefaults);
+    if (mo.preload && 'undefined' !== typeof mo.url)
+      mo._preload();
 
-    if (context.trigger.selector && context.trigger.event) {
-      $(context.trigger.selector).on(context.trigger.event, function (e, dialog) {
+    if (mo.trigger.selector && mo.trigger.event) {
+      $(mo.trigger.selector).on(mo.trigger.event, function (e, dialog) {
         dialog.show();
-      }, context);
+      }, mo);
     }
   }
 
@@ -125,9 +193,10 @@
     attributes: {},
     preload: true,
     animate: false,
+    animations: { overlayIn: {}, overlayOut: {}, dialogIn: {}, dialogOut: {} },
     modal: true,
     hideOnOverlayClick: true,
-    overlay: undefined,
+    overlay: {},
     url: undefined,
     shown: undefined,
     hidden: undefined,
@@ -137,42 +206,86 @@
     _overlayElement: undefined,
     _dialogElement: undefined,
 
-    // Show a dialog
-    show: function (opts) {
-      var context = _extend(this, opts || {});
-      context._dialogElement = _checkDialog(context);
+    /**
+     * Show the dialog.
+     */
+    show: function () {
+      var mo = this;
+      mo._dialogElement = _checkDialog(mo);
 
       // Obtain a DOM Element for the dialog
-      if ('undefined' === typeof context._dialogElement) {
-        _fetchDialog(context.url, function (e) {
-          context._dialogElement = e;
-          context._fill();
-        });
+      if ('undefined' === typeof mo._dialogElement) {
+        _fetchDialog(mo.url, function (e) {
+            mo._dialogElement = e;
+            mo._fill();
+          },
+          function (err) {
+            if (window.console)
+              console.log(err);
+          }
+        );
       } else {
-        if (!context._loaded)
-          context._fill(true);
+        if (!mo._loaded)
+          mo._fill(true);
         else
-          context._show();
+          mo._show();
       }
     },
 
-    // Hide a dialog
+    /**
+     * Hide the dialog.
+     */
     hide: function () {
       this._hide();
     },
 
-    set: function (key, o) {
-      if ('object' !== typeof o)
-        return;
+    /**
+     * Update dialog content.
+     *
+     * Expected argument combinations:
+     * @param {String} args[0] Content key (selector) for the modag instance
+     * @param {Object} args[1] Object value for content[key].
+     *                         Note: this parameter can also be a string or number.
+     *                         In which case it will be set as content[key]['text']
+     *      -- OR --
+     *
+     * @param {Object} args[0] An object of key / value pairs, where the key
+     *                         represents the selector and the value is either
+     *                         an object or a string / number:
+     *                         { '.message' : { html: '<em>My message</em>', // etc... } }
+     *                         { '.message': 'My message' }
+     */
+    set: function () {
+      var key, keys = [], args = [].slice.call(arguments)
+        , _val = function (arg) {
+          return 'object' === typeof arg ? arg : { text: arg };
+        };
 
-      if ('undefined' === typeof this.content[key])
-        this.content[key] = o;
-      else
-        this.content[key] = _extend(this.content[key], o);
-      this._set(key);
+      if (args.length == 1 && 'object' === typeof args[0]) {
+        for (key in args) {
+          if ('undefined' === typeof this.content[key])
+            this.content[key] = _val(args[key]);
+          else
+            this.content[key] = _extend(this.content[key], _val(args[key]));
+          keys.push(key);
+        }
+        this._setContent(keys);
+      } else if (arguments.length == 2) {
+        key = args[0];
+        if ('undefined' === typeof this.content[key])
+          this.content[key] = _val(args[1]);
+        else
+          this.content[key] = _extend(this.content[key], _val(args[1]));
+        this._setContent(key);
+      }
     },
 
-    // Destroy a dialog
+    /**
+     * Destroy the dialog.
+     *
+     * Remove trigger events and any events added to content items.
+     * Remove _dialogElement from the DOM.
+     */
     destroy: function () {
       var c, evt;
 
@@ -195,44 +308,75 @@
       $(this._dialogElement).remove();
     },
 
-    _set: function (key) {
-      var selector
-        , item = this.content[key]
+    /**
+     * Manupilate the DOM for one or more content items
+     *
+     * @private
+     *
+     * Expected arguments combinations:
+     * @param {String} key content item key (selector) to set
+     *
+     *      -- OR --
+     *
+     * @param {Array} keys content item keys (selectors) to set
+     */
+    _setContent: function () {
+      var key, item, selector
+        , keys = []
+        , args = [].slice.call(arguments);
 
-      if ('undefined' === typeof item)
-        return;
+      if (args.length > 0) {
+        if (Array !== args[0].constructor)
+          keys.push(args[0]);
+        else
+          keys = args[0];
 
-      selector = $(key, this._dialogElement);
-      if ('undefined' === typeof selector)
-        return;
+        for (key in keys) {
+          item = this.content[keys[key]];
+          selector = $(keys[key], this._dialogElement);
 
-      if (item.text)
-        $(selector).text(item.text);
-      if (item.html)
-        $(selector).html(item.html);
+          if (item.text)
+            $(selector).text(item.text);
+          if (item.html)
+            $(selector).html(item.html);
 
-      _addClasses(item.classes, selector);
-      _addAttributes(item.attributes, selector);
-      _addEvents(item.events, selector, this);
+          _addClasses(item.classes, selector);
+          _addAttributes(item.attributes, selector);
+          _addEvents(item.events, selector, this);
+        }
+      }
     },
 
-    // Pre load a dialog
+    /**
+     * Preload dialog markup from a URL.
+     *
+     * @private
+     */
     _preload: function () {
-      var context = this;
+      var mo = this;
       _async(function () {
-        context._dialogElement = _checkDialog(context);
-        if ('undefined' === typeof context._dialogElement) {
-          _fetchDialog(context.url,
-            function (e) {
-              context._loaded = true;
-              context._dialogElement = e;
-              context._fill();
-            });
+        mo._dialogElement = _checkDialog(mo);
+        if ('undefined' === typeof mo._dialogElement) {
+          _fetchDialog(mo.url,
+              function (e) {
+                mo._loaded = true;
+                mo._dialogElement = e;
+                mo._fill();
+              },
+              function (err) {
+                if (window.console)
+                  console.log(err);
+              }
+            );
         }
       });
     },
 
-    // Fill a dialog with content
+    /**
+     * Fill a dialog with content.
+     *
+     * @private
+     */
     _fill: function (show) {
       var c;
 
@@ -242,68 +386,66 @@
       // Content
       if ('object' === typeof this.content)
         for (c in this.content)
-          this._set(c);
+          this._setContent(c);
 
       if (show)
         this._show();
     },
 
     _show: function () {
-      var context = this;
+      var mo = this;
       if (this.modal) {
         this._showOverlay(function () {
-          context._showDialog(function () {
-            if ('function' === typeof context.shown) {
-              context.shown(context);
+          mo._showDialog(function () {
+            if ('function' === typeof mo.shown) {
+              mo.shown(mo);
             }
           });
         });
       } else {
         this._showDialog(function () {
-          if ('function' === typeof context.shown)
-            context.shown(context);
+          if ('function' === typeof mo.shown)
+            mo.shown(mo);
         });
       }
     },
 
     _hide: function () {
-      var context = this;
+      var mo = this;
       if (this.modal) {
         this._hideDialog(function () {
-          context._hideOverlay(function () {
-            if ('function' === typeof context.hidden)
-              context.hidden(context);
+          mo._hideOverlay(function () {
+            if ('function' === typeof mo.hidden)
+              mo.hidden(mo);
           });
         });
       } else {
         this._hideDialog(function () {
-          if ('function' === typeof context.hidden)
-            context.hidden(context);
+          if ('function' === typeof mo.hidden)
+            mo.hidden(mo);
         });
       }
     },
 
     _showOverlay: function (onComplete) {
-      var context = this;
+      var css
+        , ani
+        , mo = this;
+
       if ('undefined' === typeof this._overlayElement)
         this._overlayElement = _createOverlay(this);
 
       if (this.hideOnOverlayClick) {
         $(this._overlayElement).on('click', function () {
-          context.hide();
+          mo.hide();
         });
       }
 
       if (this.animate) {
-        $(this._overlayElement).css({
-          display: 'block',
-          opacity: 0
-        })
-        .animate({
-          opacity: 0.8,
-          duration: 250,
-          complete: onComplete
-        });
+        css = _clone(this.animations.overlayIn.css);
+        ani = _clone(this.animations.overlayIn.animate);
+        ani['complete'] = onComplete;
+        $(this._overlayElement).css(css).animate(ani);
       } else {
         $(this._overlayElement).show('block');
         if ('function' === typeof onComplete)
@@ -312,21 +454,22 @@
     },
 
     _hideOverlay: function (onComplete) {
-      var context = this;
+      var mo = this
+        , css
+        , ani
+        , complete = function () {
+          $(mo._overlayElement).hide();
+          if ('function' === typeof onComplete)
+            onComplete();
+        };
       if (this.hideOnOverlayClick)
         $(this._overlayElement).on('click', null);
 
       if (this.animate) {
-        $(this._overlayElement).animate({
-          display: 'none',
-          opacity: 0,
-          duration: 250,
-          complete: function () {
-            $(context._overlayElement).hide();
-            if ('function' === typeof onComplete)
-              onComplete();
-          }
-        });
+        css = _clone(this.animations.overlayOut.css);
+        ani = _clone(this.animations.overlayOut.animate);
+        ani['complete'] = complete;
+        $(this._overlayElement).css(css).animate(ani);
       } else {
         $(this._overlayElement).hide();
         if ('function' === typeof onComplete)
@@ -335,16 +478,14 @@
     },
 
     _showDialog: function (onComplete) {
+      var ani
+        , css;
+
       if (this.animate) {
-        $(this._dialogElement).css({
-          display: 'block',
-          'margin-top': '-1000px'
-        })
-        .animate({
-          'margin-top': '-200px',
-          duration: 300,
-          complete: onComplete
-        });
+        css = _clone(this.animations.dialogIn.css);
+        ani = _clone(this.animations.dialogIn.animate);
+        ani['complete'] = onComplete;
+        $(this._dialogElement).css(css).animate(ani);
       } else {
         $(this._dialogElement).show('block');
         if ('function' === typeof onComplete)
@@ -353,17 +494,20 @@
     },
 
     _hideDialog: function (onComplete) {
-      var context = this;
-      if (this.animate) {
-        $(this._dialogElement).animate({
-          'margin-top': '-1000px',
-          duration: 300,
-          complete: function () {
-            $(context._dialogElement).hide();
+      var mo = this
+        , css
+        , ani
+        , complete = function () {
+            $(mo._dialogElement).hide();
             if ('function' === typeof onComplete)
               onComplete();
-          }
-        });
+          };
+
+      if (this.animate) {
+        css = _clone(this.animations.dialogOut.css);
+        ani = _clone(this.animations.dialogOut.animate);
+        ani['complete'] = complete;
+        $(this._dialogElement).css(css).animate(ani);
       } else {
         $(this._dialogElement).hide();
         if ('function' === typeof onComplete)
