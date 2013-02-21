@@ -1,15 +1,18 @@
-modag.js
-=========
+modag
+=====
 
-modag.js is a tiny modal dialog plugin for ender.
+A tiny modal dialog plugin for ender.
 
 Getting Started
 ---------------
+it
 
 API
 ---
+is
 
 Ender
 -----
+coming
 
 &copy; Dan Jarvis 2013, License: [MIT](http://danjarvis.mit-license.org)
