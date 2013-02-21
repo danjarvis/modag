@@ -6,7 +6,7 @@
     ]
   },
   "JSHINT_OPTS": {
-    "predef": [ "$", "module", "define", "window", "console", "setTimeout" ],
+    "predef": [ "$", "module", "define", "window", "console", "setTimeout", "XMLHttpRequest", "ActiveXObject" ],
     "boss": true,
     "forin": false,
     "curly": false,
